@@ -7,7 +7,7 @@
 uint16_t memory[MEMORY_MAX];
 
 //Registers
-enum {
+enum {  //how was this thought of??
     R_R0 = 0,
     R_R1,
     R_R2,
@@ -43,7 +43,7 @@ enum {
     OP_TRAP    // EXECUTE TRAP
 };
 
-//Conditional Flags
+//Conditional Flags  ---experiment zone
 enum {
     FL_POS = 1 << 0, // P
     FL_ZRO = 1 << 1, // Z
@@ -78,23 +78,48 @@ int main(int argc, const char* argv[]){
     int running = 1;
     while (running) {
         //FETCH
-        uint16_t instr = mem_read(reg[R_PC]++); //FETCH INSTRUCTION AND PC++
+        uint16_t instr = mem_read(reg[R_PC]++); //FETCH INSTRUCTION by PC++???
         uint16_t op = instr >> 12; //16 - 4(opcode) = 12
 
-        switch (op)
+        switch (op) //how is switch op working
         {
             case OP_ADD:
-                /*@{ADD}*/
                 uint16_t r0 = (instr >> 9) & 0x7;
+                uint16_t r1 = (instr >> 6) & 0x7;
+                if ( (instr >> 5) & 0x1 ){
+                    uint16_t imm5 = sign_extend(instr & 0x1F);
+                }
+                break;
 
-                break;
             case OP_AND:
-                /*@{ADD}*/
+            uint16_t r0 = (instr >> 9) & 0x7;
+            uint16_t r1 = (instr >> 6 ) & 0x7;
+            if( (instr >> 5) & 0x1){ //check for imm flag
+                uint16_t imm5 = sign_extend(instr & 0x1F,5);
+                reg[r0] = reg[r1] & imm5;
+            }else{
+                uint16_t r2 = instr & 0x7;
+                reg[r0] = reg[r1] & reg[r2];
+            }
+            updateflag(r0);
                 break;
+
             case OP_NOT:
-                /*@{ADD}*/
+                uint16_t r0 = (instr >> 9) & 0x7;
+                uint16_t r1 = (instr >> 6) & 0x7;
+                reg[r0] = ~reg[r1];
+                updateflag(r0);
                 break;
-            case OP_BR:
+
+            case OP_BR: //??????????????
+            uint16_t n = (instr >> 11) & 0x1;
+            uint16_t z = (instr >> 10) & 0x1;
+            uint16_t p = (instr >> 9) & 0x1;
+            if ((n & FL_NEG) | (z & FL_ZRO) | (p & FL_POS)){
+                uint16_t pcoffset9 = sign_extend(instr & 0x1F,9);
+                reg[R_PC] += pcoffset9;
+
+            }
                 /*@{ADD}*/
                 break;
             case OP_JMP:
@@ -106,8 +131,13 @@ int main(int argc, const char* argv[]){
             case OP_LD:
                 /*@{ADD}*/
                 break;
-            case OP_LDI:
-                /*@{ADD}*/
+            case OP_LDI: 
+            //Why isnt LDI overlapping its variables with binary of the code..what if we get a memory shortage ??
+            //why double address??
+                uint16_t r0 = ( instr >> 9 ) & 0x7;
+                uint16_t pcoffset9 = sign_extend(instr & 0x1FF, 9);
+                reg[r0] = mem_read(mem_read(reg[R_PC]+pcoffset9));
+                updateflag(r0);
                 break;
             case OP_LDR:
                 /*@{ADD}*/
@@ -137,7 +167,7 @@ int main(int argc, const char* argv[]){
    /*@{SHUTDOWN}*/
 }
 
-//Everytime a value writen to a(any) reg => update flag reg
+//Everytime a value writen to a(any) reg -> update flag reg
 void updateflag( uint16_t r ){
     if ( reg[r] == 0 ){
         reg[R_COND] = FL_ZRO;
@@ -148,6 +178,16 @@ void updateflag( uint16_t r ){
         reg[R_COND] = FL_POS;
 }
 
+uint16_t sign_extend(uint16_t r, int places){
+    if ( ( r >> (places - 1) & 0x1 ){
+        //negative
+    }
+    else {
+        r = r | (1 << 16);
+
+    }
+
+}
 
 
 
