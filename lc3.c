@@ -1,12 +1,12 @@
 //includes
 #include <stdint.h>
-
+#include <stdio.h>
 
 //Memory
 #define MEMORY_MAX (1 << 16) //macro of max memory
 uint16_t memory[MEMORY_MAX];
 
-//Registers
+//Registers - Just storing the index of registers analogus to 
 enum {  //how was this thought of??
     R_R0 = 0,
     R_R1,
@@ -15,7 +15,7 @@ enum {  //how was this thought of??
     R_R4,
     R_R5,
     R_R6,
-    R_R7,
+    R_R7,   //used for extra storage? saving current PC
     R_PC, /* program counter */
     R_COND,
     R_COUNT
@@ -49,6 +49,17 @@ enum {
     FL_ZRO = 1 << 1, // Z
     FL_NEG = 1 << 2  // N
 };
+
+//TRAP Codes
+enum {
+    TRAP_GETC = 0x20, //gets char from keyboard, not echoed onto the terminal
+    TRAP_OUT = 0x21,  //outputs a char 
+    TRAP_PUTS = 0X22, // outputs a word string
+    TRAP_IN = 0X23,     //get char from keyboard, echoed onto the the term
+    TRAP_PUTSP = 0X24,  // output a byte string
+    TRAP_HALT = 0X25    //halt the program
+};
+
 
 int main(int argc, const char* argv[]){
 
@@ -92,16 +103,16 @@ int main(int argc, const char* argv[]){
                 break;
 
             case OP_AND:
-            uint16_t r0 = (instr >> 9) & 0x7;
-            uint16_t r1 = (instr >> 6 ) & 0x7;
-            if( (instr >> 5) & 0x1){ //check for imm flag
-                uint16_t imm5 = sign_extend(instr & 0x1F,5);
-                reg[r0] = reg[r1] & imm5;
-            }else{
-                uint16_t r2 = instr & 0x7;
-                reg[r0] = reg[r1] & reg[r2];
-            }
-            updateflag(r0);
+                uint16_t r0 = (instr >> 9) & 0x7;
+                uint16_t r1 = (instr >> 6 ) & 0x7;
+                if( (instr >> 5) & 0x1){ //check for imm flag
+                    uint16_t imm5 = sign_extend(instr & 0x1F,5);
+                    reg[r0] = reg[r1] & imm5;
+                }else{
+                    uint16_t r2 = instr & 0x7;
+                    reg[r0] = reg[r1] & reg[r2];
+                }
+                updateflag(r0);
                 break;
 
             case OP_NOT:
@@ -163,7 +174,37 @@ int main(int argc, const char* argv[]){
             /*@{BADOPCODE}*/
                 break;
         }
-   }
+
+    reg[R_R7] = reg[R_PC];
+        switch (instr & 0xFF)
+            {
+            case TRAP_GETC:
+                
+                break;
+            case TRAP_OUT:
+                break;
+            case TRAP_PUTS:
+            {
+                /*Write a string of ASCII characters to the console display. The characters
+                are contained in consecutive memory locations, one character per memory
+                location, starting with the address specified in R0. Writing terminates with
+                the occurrence of x0000 in a memory location */
+                uint16_t* c = memory + reg[R_R7]; //WHY - POINTER? and '+ mem'-offset 
+                while(*c){
+                    putc( (char)*c , stdout);
+                    ++c; 
+                }
+                fflush(stdout);
+            }
+                break;
+            case TRAP_IN:
+                break;
+            case TRAP_PUTSP:
+                break;
+            case TRAP_HALT:
+                break;
+            }
+}
    /*@{SHUTDOWN}*/
 }
 
@@ -179,7 +220,7 @@ void updateflag( uint16_t r ){
 }
 
 uint16_t sign_extend(uint16_t r, int places){
-    if ( ( r >> (places - 1) & 0x1 ){
+    if ( ( r >> (places - 1) & 0x1 ) ){
         //negative
     }
     else {
