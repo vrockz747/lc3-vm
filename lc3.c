@@ -179,12 +179,15 @@ int main(int argc, const char* argv[]){
         switch (instr & 0xFF)
             {
             case TRAP_GETC:
-                
+                reg[R_R0] = (uint16_t) getchar();
+                updateflag(R_R0);
                 break;
+
             case TRAP_OUT:
+                putc( (char)reg[R_R0] , stdout); //what happens if we remove (char)?
+                fflush(stdout);
                 break;
             case TRAP_PUTS:
-            {
                 /*Write a string of ASCII characters to the console display. The characters
                 are contained in consecutive memory locations, one character per memory
                 location, starting with the address specified in R0. Writing terminates with
@@ -195,10 +198,15 @@ int main(int argc, const char* argv[]){
                     ++c; 
                 }
                 fflush(stdout);
-            }
                 break;
             case TRAP_IN:
+                prinf("Enter a character: ");
+                reg[R_R0] = (uint16_t) getchar();
+                putc(reg[R_R0], stdout );
+                fflush(stdout);
+                updateflag(R_R0);
                 break;
+
             case TRAP_PUTSP:
                 break;
             case TRAP_HALT:
