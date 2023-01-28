@@ -1,10 +1,12 @@
+//Twos Compliment??
+
 //includes
 #include <stdint.h>
 #include <stdio.h>
 
 //Memory
 #define MEMORY_MAX (1 << 16) //macro of max memory
-uint16_t memory[MEMORY_MAX];
+uint16_t memory[MEMORY_MAX]; //note since its a memory we need indexing therefore ofcourse its a Array
 
 //Registers - Just storing the index of registers analogus to 
 enum {  //how was this thought of??
@@ -21,7 +23,7 @@ enum {  //how was this thought of??
     R_COUNT
 };
 //MAKE ARRAY / STORE REGISTERS
-uint16_t reg[R_COUNT];
+uint16_t reg[R_COUNT]; // Note all registers are  16-bit
 
 //Opcodes
 enum {
@@ -83,13 +85,13 @@ int main(int argc, const char* argv[]){
 
     //Set PC (program counter) to starting position
     //0x3000 is the default
-    enum { PC_START = 0x3000 }; //HERE USED AS A MACRO?
+    enum { PC_START = 0x3000 };
     reg[R_PC] = PC_START;
 
-    int running = 1;
+    int running = 1; //basically the on/off switch of processor
     while (running) {
         //FETCH
-        uint16_t instr = mem_read(reg[R_PC]++); //FETCH INSTRUCTION by PC++???
+        uint16_t instr = mem_read(reg[R_PC]++); //instructions get loaded in mem, then fetched by CPU
         uint16_t op = instr >> 12; //16 - 4(opcode) = 12
 
         switch (op) //how is switch op working
@@ -188,13 +190,12 @@ int main(int argc, const char* argv[]){
                 fflush(stdout);
                 break;
             case TRAP_PUTS:
-                /*Write a string of ASCII characters to the console display. The characters
-                are contained in consecutive memory locations, one character per memory
-                location, starting with the address specified in R0. Writing terminates with
-                the occurrence of x0000 in a memory location */
-                uint16_t* c = memory + reg[R_R7]; //WHY - POINTER? and '+ mem'-offset 
+                /*  print to console a string whose 
+                    starting address is stored in R7  */
+                    //Note 'memory[]' is an array! 
+                uint16_t* c = memory + reg[R_R7];// pointer to a char, right? then why uint16?
                 while(*c){
-                    putc( (char)*c , stdout);
+                    putc( (char)*c , stdout); //needed to cast because c was uint16
                     ++c; 
                 }
                 fflush(stdout);
@@ -208,8 +209,22 @@ int main(int argc, const char* argv[]){
                 break;
 
             case TRAP_PUTSP:
+                uint16_t *c = memory + reg[R_R0];
+                while(*c){
+                    uint8_t ch = (*c) & 0xFF; //0x8 doesnot take 8 full(1) bits, 0xFF does
+                    putc( (char)ch, stdout);
+                    ch = (*c)>>8;
+                    if(!ch){
+                        putc( (char)ch, stdout);
+                    }
+                    c++;
+                }
+                fflush(stdout);
                 break;
             case TRAP_HALT:
+            puts("Halting");
+            fflush(stdout);
+            running = 0; 
                 break;
             }
 }
@@ -237,9 +252,3 @@ uint16_t sign_extend(uint16_t r, int places){
     }
 
 }
-
-
-
-
-
-
