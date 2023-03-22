@@ -68,14 +68,14 @@ enum {
     FL_NEG = 1 << 2  // N
 };
 
-//TRAP Codes
+//TRAP Codes - defining the values to be compared with opcodes in switch cases
 enum {
-    TRAP_GETC = 0x20, //gets char from keyboard, not echoed onto the terminal
-    TRAP_OUT = 0x21,  //outputs a char 
-    TRAP_PUTS = 0x22, // outputs a word string
-    TRAP_IN = 0x23,     //get char from keyboard, echoed onto the the term
+    TRAP_GETC  = 0x20, //gets char from keyboard, not echoed onto the terminal
+    TRAP_OUT   = 0x21,  //outputs a char 
+    TRAP_PUTS  = 0x22, // outputs a word string
+    TRAP_IN    = 0x23,     //get char from keyboard, echoed onto the the term
     TRAP_PUTSP = 0x24,  // output a byte string
-    TRAP_HALT = 0x25    //halt the program
+    TRAP_HALT  = 0x25    //halt the program
 };
 
 
@@ -116,7 +116,7 @@ int main(int argc, const char* argv[]){
                 uint16_t r0 = (instr >> 9) & 0x7;
                 uint16_t r1 = (instr >> 6) & 0x7;
                 if ( (instr >> 5) & 0x1 ){
-                    uint16_t imm5 = sign_extend(instr & 0x1F);
+                    uint16_t imm5 = sign_extend(instr & 0x1F, 5);
                 }
                 break;
 
@@ -140,24 +140,23 @@ int main(int argc, const char* argv[]){
                 updateflag(r0);
                 break;
 
-            case OP_BR: //??????????????
-            uint16_t n = (instr >> 11) & 0x1;
-            uint16_t z = (instr >> 10) & 0x1;
-            uint16_t p = (instr >> 9) & 0x1;
-            if ((n & FL_NEG) | (z & FL_ZRO) | (p & FL_POS)){
-                uint16_t pcoffset9 = sign_extend(instr & 0x1F,9);
-                reg[R_PC] += pcoffset9;
-
-            }
-                /*@{ADD}*/
+            case OP_BR:
+    
+                uint16_t n = (instr >> 11) & 0x1;
+                uint16_t z = (instr >> 10) & 0x1;
+                uint16_t p = (instr >> 9) & 0x1;
+                if ((n & FL_NEG) | (z & FL_ZRO) | (p & FL_POS)){
+                    uint16_t pcoffset9 = sign_extend(instr & 0x1F,9);
+                    reg[R_PC] += pcoffset9;
+                }
                 break;
+
             case OP_JMP:
                 uint16_t r1 =  ((instr >> 6) & 0x7);
                 reg[R_PC] = reg[r1];
-                /*@{ADD}*/
                 break;
-            case OP_JSR:
 
+            case OP_JSR:
                 reg[R_R7] = reg[R_PC];    
                 if ( !((instr >> 11 )&0x1) ){
                     uint16_t r1 = (instr >> 6) & 0x7;
@@ -167,11 +166,15 @@ int main(int argc, const char* argv[]){
                     reg[R_PC] = reg[R_PC] + offset;
                 
                 }
-                /*@{ADD}*/
                 break;
+
             case OP_LD:
-                /*@{ADD}*/
+                uint16_t pcoffset = sign_extend( instr & 0x1FF, 9);
+                uint16_t r0 = (instr >> 9) & 0x7;
+                reg[r0] = mem_read(reg[R_PC] + pcoffset);
+                updateflag(r0);
                 break;
+
             case OP_LDI: 
             //Why isnt LDI overlapping its variables with binary of the code..what if we get a memory shortage ??
             //why double address??
@@ -180,81 +183,105 @@ int main(int argc, const char* argv[]){
                 reg[r0] = mem_read(mem_read(reg[R_PC]+pcoffset9));
                 updateflag(r0);
                 break;
+
             case OP_LDR:
-                /*@{ADD}*/
+                uint16_t r0 = (instr>>9) & 0x7;
+                uint16_t r1 = (instr >> 6) & 0x7;
+                uint16_t pcoffset = sign_extend( instr & 0x3F, 6);
+                reg[r0] = mem_read( reg[r1] + pcoffset );
+                updateflag(r0);
                 break;
+
             case OP_LEA:
-                /*@{ADD}*/
+                uint16_t r0 = (instr >> 9) & 0x7;
+                uint16_t pcoffset = sign_extend(instr & 0x1FF, 9);
+                reg[r0] = reg[R_PC] + pcoffset;
+                updateflag(r0);
                 break;
-            case OP_ST:
-                /*@{ADD}*/
+
+            case OP_ST://IMP - HOW WHY?
+                uint16_t r0 = (instr >> 9) & 0x7;
+                uint16_t pcoffset = sign_extend(instr & 0x1FF, 9);
+                mem_write(reg[R_PC] + pcoffset, reg[r0]);
                 break;
+
             case OP_STI:
-                /*@{ADD}*/
+                uint16_t r0 = (instr >> 9) & 0x7;
+                uint16_t pcoffset = sign_extend(instr & 0x1FF, 9);
+                mem_write(mem_read(reg[R_PC] + pcoffset), reg[r0]);
                 break;
+
             case OP_STR:
-                /*@{ADD}*/
+                uint16_t pcoffset = sign_extend(instr & 0x3F, 6);
+                uint16_t r0 = (instr >> 9) & 0x7;
+                uint16_t r1 = (instr >> 6) & 0x7;
+                mem_write(reg[r1] + pcoffset, reg[r0]);
                 break;
+
             case OP_TRAP:
-                /*@{ADD}*/
+            reg[R_R7] = reg[R_PC];
+            switch (instr & 0xFF)
+                {
+                case TRAP_GETC:
+                    reg[R_R0] = (uint16_t) getchar();
+                    updateflag(R_R0);
+                    break;
+
+                case TRAP_OUT:
+                    putc( (char)reg[R_R0] , stdout); //what happens if we remove (char)?
+                    fflush(stdout);
+                    break;
+
+                case TRAP_PUTS:
+                    /*  print to console a string whose 
+                        starting address is stored in R7  */
+                        //Note 'memory[]' is an array! 
+                    uint16_t* c = memory + reg[R_R7];// pointer to a char, right? then why uint16?
+                    while(*c){
+                        putc( (char)*c , stdout); //needed to cast because c was uint16
+                        ++c; 
+                    }
+                    fflush(stdout);
+                    break;
+
+                case TRAP_IN:
+                    prinf("Enter a character: ");
+                    reg[R_R0] = (uint16_t) getchar();
+                    putc(reg[R_R0], stdout );
+                    fflush(stdout);
+                    updateflag(R_R0);
+                    break;
+
+                case TRAP_PUTSP:
+                    uint16_t *c = memory + reg[R_R0];
+                    while(*c){
+                        uint8_t ch = (*c) & 0xFF; //0x8 doesnot take 8 full(1) bits, 0xFF does
+                        putc( (char)ch, stdout);
+                        ch = (*c)>>8;
+                        if(!ch){
+                            putc( (char)ch, stdout);
+                        }
+                        c++;
+                    }
+                    fflush(stdout);
+                    break;
+
+                case TRAP_HALT:
+                puts("Halting");
+                fflush(stdout);
+                running = 0; 
+                    break;
+                }
                 break;
+
             case OP_RES:
+                abort();
             case OP_RTI:
+                abort();
             default:
-            /*@{BADOPCODE}*/
+                abort();
                 break;
         }
-            //TrapCodes
-        reg[R_R7] = reg[R_PC];
-        switch (instr & 0xFF)
-            {
-            case TRAP_GETC:
-                reg[R_R0] = (uint16_t) getchar();
-                updateflag(R_R0);
-                break;
-
-            case TRAP_OUT:
-                putc( (char)reg[R_R0] , stdout); //what happens if we remove (char)?
-                fflush(stdout);
-                break;
-            case TRAP_PUTS:
-                /*  print to console a string whose 
-                    starting address is stored in R7  */
-                    //Note 'memory[]' is an array! 
-                uint16_t* c = memory + reg[R_R7];// pointer to a char, right? then why uint16?
-                while(*c){
-                    putc( (char)*c , stdout); //needed to cast because c was uint16
-                    ++c; 
-                }
-                fflush(stdout);
-                break;
-            case TRAP_IN:
-                prinf("Enter a character: ");
-                reg[R_R0] = (uint16_t) getchar();
-                putc(reg[R_R0], stdout );
-                fflush(stdout);
-                updateflag(R_R0);
-                break;
-
-            case TRAP_PUTSP:
-                uint16_t *c = memory + reg[R_R0];
-                while(*c){
-                    uint8_t ch = (*c) & 0xFF; //0x8 doesnot take 8 full(1) bits, 0xFF does
-                    putc( (char)ch, stdout);
-                    ch = (*c)>>8;
-                    if(!ch){
-                        putc( (char)ch, stdout);
-                    }
-                    c++;
-                }
-                fflush(stdout);
-                break;
-            case TRAP_HALT:
-            puts("Halting");
-            fflush(stdout);
-            running = 0; 
-                break;
-            }
 }
    /*@{SHUTDOWN}*/
 }
