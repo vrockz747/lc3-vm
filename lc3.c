@@ -21,7 +21,7 @@ CAN the max possible RAM be increased with 2 sets? if the CPU somehow knows the 
 #include <stdio.h>
 
 //Memory
-#define MEMORY_MAX (1 << 16) //macro of max memory
+#define MEMORY_MAX (1 << 16) //macro defined for max memory
 uint16_t memory[MEMORY_MAX]; //note since its a memory we need indexing therefore ofcourse its a Array
 
 //Registers - Just storing the index of registers analogus to 
@@ -152,9 +152,21 @@ int main(int argc, const char* argv[]){
                 /*@{ADD}*/
                 break;
             case OP_JMP:
+                uint16_t r1 =  ((instr >> 6) & 0x7);
+                reg[R_PC] = reg[r1];
                 /*@{ADD}*/
                 break;
             case OP_JSR:
+
+                reg[R_R7] = reg[R_PC];    
+                if ( !((instr >> 11 )&0x1) ){
+                    uint16_t r1 = (instr >> 6) & 0x7;
+                    reg[R_PC] = reg[r1];
+                }else{
+                    uint16_t offset = sign_extend( instr & 0x7FF ,11);
+                    reg[R_PC] = reg[R_PC] + offset;
+                
+                }
                 /*@{ADD}*/
                 break;
             case OP_LD:
@@ -267,4 +279,7 @@ uint16_t sign_extend(uint16_t r, int places){
 
     }
 }
+
+//Loading program into memory
+
 
