@@ -21,11 +21,12 @@ CAN the max possible RAM be increased with 2 sets? if the CPU somehow knows the 
 #include <stdio.h>
 
 //Memory
+//memory max should be 0xFFFF, how (1 << 16)???
 #define MEMORY_MAX (1 << 16) //macro defined for max memory
 uint16_t memory[MEMORY_MAX]; //note since its a memory we need indexing therefore ofcourse its a Array
 
-//Registers - Just storing the index of registers analogus to 
-enum {  //how was this thought of??
+//Registers - Just storing the index of registers analogus-to-
+enum {  // how was this thought of??
     R_R0 = 0,
     R_R1,
     R_R2,
@@ -33,8 +34,8 @@ enum {  //how was this thought of??
     R_R4,
     R_R5,
     R_R6,
-    R_R7,   //used for extra storage? saving current PC
-    R_PC, /* program counter */
+    R_R7,   // used for extra storage? saving current PC
+    R_PC,   // program counter
     R_COND,
     R_COUNT
 };
@@ -43,7 +44,7 @@ uint16_t reg[R_COUNT]; // Note all registers are  16-bit
 
 //Opcodes
 enum {
-    OP_BR = 0, //BRANCH
+    OP_BR = 0, // BRANCH
     OP_ADD,    // ADD
     OP_LD,     // LOAD
     OP_ST,     // STORE
@@ -70,12 +71,12 @@ enum {
 
 //TRAP Codes - defining the values to be compared with opcodes in switch cases
 enum {
-    TRAP_GETC  = 0x20, //gets char from keyboard, not echoed onto the terminal
-    TRAP_OUT   = 0x21,  //outputs a char 
-    TRAP_PUTS  = 0x22, // outputs a word string
-    TRAP_IN    = 0x23,     //get char from keyboard, echoed onto the the term
-    TRAP_PUTSP = 0x24,  // output a byte string
-    TRAP_HALT  = 0x25    //halt the program
+    TRAP_GETC  = 0x20,     // gets char from keyboard, not echoed onto the terminal
+    TRAP_OUT   = 0x21,     // outputs a char 
+    TRAP_PUTS  = 0x22,     // outputs a word string
+    TRAP_IN    = 0x23,     // get char from keyboard, echoed onto the the term
+    TRAP_PUTSP = 0x24,     // output a byte string
+    TRAP_HALT  = 0x25      // halt the program
 };
 
 
@@ -88,7 +89,7 @@ int main(int argc, const char* argv[]){
         exit(2);
     }
     //parse the CLargument
-    for (int j = 1; j < argc; ++j){ //------------why ++j and not j++?
+    for (int j = 1; j < argc; j++){ //------------why ++j and not j++?
         if(!read_image(argv[j])){
             printf("failed to load image: %s\n", argv[j]);
             exit(1);
@@ -199,7 +200,7 @@ int main(int argc, const char* argv[]){
                 updateflag(r0);
                 break;
 
-            case OP_ST://IMP - HOW WHY?
+            case OP_ST://IMP - HOW WHY???
                 uint16_t r0 = (instr >> 9) & 0x7;
                 uint16_t pcoffset = sign_extend(instr & 0x1FF, 9);
                 mem_write(reg[R_PC] + pcoffset, reg[r0]);
@@ -255,7 +256,7 @@ int main(int argc, const char* argv[]){
                 case TRAP_PUTSP:
                     uint16_t *c = memory + reg[R_R0];
                     while(*c){
-                        uint8_t ch = (*c) & 0xFF; //0x8 doesnot take 8 full(1) bits, 0xFF does
+                        uint8_t ch = (*c) & 0xFF;
                         putc( (char)ch, stdout);
                         ch = (*c)>>8;
                         if(!ch){
@@ -306,7 +307,70 @@ uint16_t sign_extend(uint16_t r, int places){
 
     }
 }
+//Swap
+uint16_t swap16(uint16_t x){
+       return (x << 8) | (x >> 8);
+    }
 
 //Loading program into memory
+//making the virtual memory for VM
+void read_image_file(FILE* file){
 
+    //we take out origin to know the max_read for fread
+    uint16_t origin;
+    fread(&origin, sizeof(uint16_t), 1, file);
+    origin = swap16(origin);
 
+    //??????Shouldnt instead of max read we should put { max_read / sizeof(uint16_t) }
+    uint16_t max_read = MEMORY_MAX - origin;
+    //storing the file in exact location in memory as specified by arch
+    uint16_t* p = memory + origin;
+    size_t read = fread(p, sizeof(uint16_t), (max_read / sizeof(uint16_t)), file);
+
+    //swapping each element to 
+    while(read-- > 0){
+        *p = swap16(*p);
+        p++;
+    }
+}
+
+//Take path of img file and send it for reading
+int read_image(const char* image_path){
+    FILE* file = fopen(image_path, "rb");
+    if (!file){
+        return 0;
+    }
+    read_image_file(file);
+    fclose(file);
+    return 1;
+}
+
+//Memory Mapped Registers
+enum{
+    MR_KBSR = 0xFE00, //kbrd status register
+    MR_KBDR = 0xFE02  //kbrd data register
+};
+
+void mem_write(uint16_t address, uint16_t val){
+    memory[address] = val;
+}
+
+uint16_t mem_read(uint16_t address){
+
+    /* we have memory mapped registers 
+    --> we need to check if the value we want to 
+    read is maybe that of memory mapped(special) reg: */  
+    
+    if( address == MR_KBSR){
+        if(check_key()){
+            memory[MR_KBSR] = (1 << 15); //because lc3 is big endian
+            memory[MR_KBDR] = getchar();
+        }
+        else{
+            memory[MR_KBSR] = 0;
+        }
+    }
+
+    //if not simple return the address
+    return memory[address];
+}
