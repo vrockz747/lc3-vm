@@ -1,26 +1,3 @@
-/*Things understood
-Ek CPU design kar rahe hai, to basically ek cpu kya karta hai?
-instruction fetch karta hai "RAM se" and usko apne definitions se compare karke
-registers the value change karta hai! bas
-To RAM me instrs dalne ke lie phele ROM hona chie, ROM se instrs RAM ne dalake
-cpu fetch karta hai, ROM basically machine code hai, for here 16-bits instrs(0101100..~>16) ka
-sets which tell the cpu what to do, to hmlog ye ROM file ko memory me dalke usse 16bits me instrs
-leke emulate karnege is CPU ko,
-this cpu doenst have cache memory, extra registers, more OPcode instructions etc
-
-comp arch can be made more complex and effcient with more instr? cache mem? what else? 
-whats the major diff between modern archs and this one
-can this one be improved more with few more circuits?
-can those ckts be emulated?
-can it(new arch) then be compared with its previous arch
-CAN the max possible RAM be increased with 2 sets? if the CPU somehow knows the diffs between the two
-*/
-
-//give these comments to chat gpt --questions
-
-//abstract the machine for yourself to remeber the philosohpy of 
-//CompArch
-
 //includes
 #include <stdint.h> //why??
 #include <stdio.h>
