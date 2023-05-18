@@ -16,6 +16,11 @@ can it(new arch) then be compared with its previous arch
 CAN the max possible RAM be increased with 2 sets? if the CPU somehow knows the diffs between the two
 */
 
+//give these comments to chat gpt --questions
+
+//abstract the machine for yourself to remeber the philosohpy of 
+//CompArch
+
 //includes
 #include <stdint.h> //why??
 #include <stdio.h>
@@ -51,6 +56,9 @@ enum {
 uint16_t memory[MEMORY_MAX]; //note since its a memory we need indexing therefore ofcourse its a Array
 
 //Registers - Just storing the index of registers analogus-to-
+//When accessing a register, the CPU uses the 'register number' to fetch the contents of that register. 
+//The register number is used as an index to an internal register file, which holds the contents of all the registers
+
 enum {  // how was this thought of??
     R_R0 = 0,
     R_R1,
@@ -101,14 +109,14 @@ uint16_t sign_extend(uint16_t r, int places){
         //negative
     }
     else {
-        r = r | (1 << 16);
+        r = ( r | (1 << 16) );
 
     }
 }
 
 //Swap
 uint16_t swap16(uint16_t x){
-       return (x << 8) | (x >> 8);
+       return ((x << 8) | (x >> 8));
     }
 
 //Conditional Flags  ---experiment zone
@@ -118,16 +126,16 @@ enum {
     FL_NEG = 1 << 2  // N
 };
 
-
 //Everytime a value writen to a(any) reg -> update flag reg
 void updateflag( uint16_t r ){
     if ( reg[r] == 0 ){
         reg[R_COND] = FL_ZRO;
     }
-    else if ( reg[r] >> 15 ){  /*--------- a 1 in the left-most bit indicates negative */
+    else if ( (reg[r] >> 15) ){  /*--------- a 1 in the left-most bit indicates negative */
         reg[R_COND] = FL_NEG;
-    }else 
+    }else{
         reg[R_COND] = FL_POS;
+    }
 }
 
 //Loading program into memory
@@ -211,6 +219,8 @@ enum {
 
 int main(int argc, const char* argv[]){
 
+    argc = 2;
+    argv[1] = "tests/addn.obj";
     //**Load argumemts
     if (argc < 2){
         //show usage
@@ -229,7 +239,7 @@ int main(int argc, const char* argv[]){
     signal(SIGINT, handle_interrupt);
     disable_input_buffering();
 
-    //since exactly one condiotion flag should be set at any given time, set the Z flag
+    //setting the initial codn flag
     reg[R_COND] = FL_ZRO;
 
     //Set PC (program counter) to starting position
@@ -249,9 +259,18 @@ int main(int argc, const char* argv[]){
             {
                 uint16_t r0 = (instr >> 9) & 0x7;
                 uint16_t r1 = (instr >> 6) & 0x7;
-                if ( (instr >> 5) & 0x1 ){
-                    uint16_t imm5 = sign_extend(instr & 0x1F, 5);
+                uint16_t imm_flag = (instr >> 5) & 0x1;
+                if (imm_flag)
+                {
+                uint16_t imm5 = sign_extend(instr & 0x1F, 5);
+                reg[r0] = reg[r1] + imm5;
                 }
+                else
+                {
+                uint16_t r2 = instr & 0x7;
+                reg[r0] = reg[r1] + reg[r2];
+                }
+                updateflag(r0);
             }
                 break;
 
@@ -281,12 +300,11 @@ int main(int argc, const char* argv[]){
 
             case OP_BR:
             {
-                uint16_t n = (instr >> 11) & 0x1;
-                uint16_t z = (instr >> 10) & 0x1;
-                uint16_t p = (instr >> 9) & 0x1;
-                if ((n & FL_NEG) | (z & FL_ZRO) | (p & FL_POS)){
-                    uint16_t pcoffset9 = sign_extend(instr & 0x1F,9);
-                    reg[R_PC] += pcoffset9;
+                uint16_t pc_offset = sign_extend(instr & 0x1FF, 9);
+                uint16_t cond_flag = (instr >> 9) & 0x7;
+                if (cond_flag & reg[R_COND])
+                {
+                reg[R_PC] += pc_offset;
                 }
             }
                 break;
@@ -300,8 +318,9 @@ int main(int argc, const char* argv[]){
 
             case OP_JSR:
             {
-                reg[R_R7] = reg[R_PC];    
-                if ( !((instr >> 11 )&0x1) ){
+                reg[R_R7] = reg[R_PC];  
+                uint16_t longflag = ((instr >> 11 ) & 1);  
+                if ( !longflag ){
                     uint16_t r1 = (instr >> 6) & 0x7;
                     reg[R_PC] = reg[r1];
                 }else{
@@ -382,7 +401,7 @@ int main(int argc, const char* argv[]){
                     {
                     case TRAP_GETC:
                     {
-                        reg[R_R0] = (uint16_t) getchar();
+                        reg[R_R0] = (uint16_t) getchar(); //?????
                         updateflag(R_R0);
                     }
                         break;
@@ -399,25 +418,25 @@ int main(int argc, const char* argv[]){
                         /*  print to console a string whose 
                             starting address is stored in R7  */
                             //Note 'memory[]' is an array! 
-                        uint16_t* c = memory + reg[R_R7];// pointer to a char, right? then why uint16?
+                        uint16_t* c = memory + reg[R_R0];// pointer to a char, right? then why uint16?
                         while(*c){
                             putc( (char)*c , stdout); //needed to cast because c was uint16
-                            ++c; 
+                            c++; 
                         }
                         fflush(stdout);
                     }
                         break;
-
+//check---------------------------------
                     case TRAP_IN:
                     {
-                        printf("Enter a character: ");
+                        printf("Enter a character: \n");
                         reg[R_R0] = (uint16_t) getchar();
                         putc(reg[R_R0], stdout );
                         fflush(stdout);
                         updateflag(R_R0);
                     }
                         break;
-
+//-----------------------------------
                     case TRAP_PUTSP:
                     {
                         uint16_t *c = memory + reg[R_R0];
