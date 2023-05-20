@@ -1,7 +1,7 @@
 //includes
-#include <stdint.h> //why??
+#include <stdint.h> 
 #include <stdio.h>
-#include <signal.h> //why??
+#include <signal.h> 
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -81,14 +81,12 @@ void handle_interrupt(int signal){
 }
 
 //sign extend
-uint16_t sign_extend(uint16_t r, int places){
-    if ( ( r >> (places - 1) & 0x1 ) ){
-        //negative
-    }
-    else {
-        r = ( r | (1 << 16) );
-
-    }
+uint16_t sign_extend(uint16_t x, int bit_count)
+{
+    if ((x >> (bit_count - 1)) & 1) {
+    x |= (0xFFFF << bit_count);
+}
+    return x;
 }
 
 //Swap
@@ -96,7 +94,7 @@ uint16_t swap16(uint16_t x){
        return ((x << 8) | (x >> 8));
     }
 
-//Conditional Flags  ---experiment zone
+//Conditional Flags
 enum {
     FL_POS = 1 << 0, // P
     FL_ZRO = 1 << 1, // Z
@@ -108,7 +106,7 @@ void updateflag( uint16_t r ){
     if ( reg[r] == 0 ){
         reg[R_COND] = FL_ZRO;
     }
-    else if ( (reg[r] >> 15) ){  /*--------- a 1 in the left-most bit indicates negative */
+    else if ( (reg[r] >> 15) ){
         reg[R_COND] = FL_NEG;
     }else{
         reg[R_COND] = FL_POS;
@@ -197,7 +195,6 @@ enum {
 int main(int argc, const char* argv[]){
 
     argc = 2;
-    argv[1] = "tests/addn.obj";
     //**Load argumemts
     if (argc < 2){
         //show usage
@@ -205,7 +202,7 @@ int main(int argc, const char* argv[]){
         exit(2);
     }
     //parse the CLargument
-    for (int j = 1; j < argc; j++){ //------------why ++j and not j++?
+    for (int j = 1; j < argc; j++){
         if(!read_image(argv[j])){
             printf("failed to load image: %s\n", argv[j]);
             exit(1);
@@ -230,7 +227,7 @@ int main(int argc, const char* argv[]){
         uint16_t instr = mem_read(reg[R_PC]++); //instructions get loaded in mem, then fetched by CPU
         uint16_t op = instr >> 12; //16 - 4(opcode) = 12
 
-        switch (op) //how is switch op working
+        switch (op)
         {
             case OP_ADD:
             {
@@ -318,8 +315,6 @@ int main(int argc, const char* argv[]){
 
             case OP_LDI:
             {
-            //Why isnt LDI overlapping its variables with binary of the code..what if we get a memory shortage ??
-            //why double address??
                 uint16_t r0 = ( instr >> 9 ) & 0x7;
                 uint16_t pcoffset9 = sign_extend(instr & 0x1FF, 9);
                 reg[r0] = mem_read(mem_read(reg[R_PC]+pcoffset9));
@@ -346,7 +341,7 @@ int main(int argc, const char* argv[]){
             }
                 break;
 
-            case OP_ST://IMP - HOW WHY???
+            case OP_ST:
             {
                 uint16_t r0 = (instr >> 9) & 0x7;
                 uint16_t pcoffset = sign_extend(instr & 0x1FF, 9);
@@ -378,14 +373,14 @@ int main(int argc, const char* argv[]){
                     {
                     case TRAP_GETC:
                     {
-                        reg[R_R0] = (uint16_t) getchar(); //?????
+                        reg[R_R0] = (uint16_t) getchar();
                         updateflag(R_R0);
                     }
                         break;
 
                     case TRAP_OUT:
                     {
-                        putc( (char)reg[R_R0] , stdout); //what happens if we remove (char)?
+                        putc( (char)reg[R_R0] , stdout);
                         fflush(stdout);
                     }
                         break;
@@ -395,7 +390,7 @@ int main(int argc, const char* argv[]){
                         /*  print to console a string whose 
                             starting address is stored in R7  */
                             //Note 'memory[]' is an array! 
-                        uint16_t* c = memory + reg[R_R0];// pointer to a char, right? then why uint16?
+                        uint16_t* c = memory + reg[R_R0];
                         while(*c){
                             putc( (char)*c , stdout); //needed to cast because c was uint16
                             c++; 
@@ -403,7 +398,7 @@ int main(int argc, const char* argv[]){
                         fflush(stdout);
                     }
                         break;
-//check---------------------------------
+
                     case TRAP_IN:
                     {
                         printf("Enter a character: \n");
@@ -413,7 +408,7 @@ int main(int argc, const char* argv[]){
                         updateflag(R_R0);
                     }
                         break;
-//-----------------------------------
+
                     case TRAP_PUTSP:
                     {
                         uint16_t *c = memory + reg[R_R0];
