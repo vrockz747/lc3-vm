@@ -1,3 +1,4 @@
+        ;Testing Opcode ADD
         .ORIG   x3000           ; start of program
         ; display input prompt string to user
         AND R0, R0, #0          ;CLEAR R0
