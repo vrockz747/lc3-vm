@@ -36,7 +36,7 @@ uint16_t memory[MEMORY_MAX]; //note since its a memory we need indexing therefor
 //When accessing a register, the CPU uses the 'register number' to fetch the contents of that register. 
 //The register number is used as an index to an internal register file, which holds the contents of all the registers
 
-enum {  // how was this thought of??
+enum {
     R_R0 = 0,
     R_R1,
     R_R2,
@@ -44,13 +44,13 @@ enum {  // how was this thought of??
     R_R4,
     R_R5,
     R_R6,
-    R_R7,   // used for extra storage? saving current PC
+    R_R7,   // used for extra storage/ saving current PC
     R_PC,   // program counter
     R_COND,
     R_COUNT
 };
 //MAKE ARRAY / STORE REGISTERS
-uint16_t reg[R_COUNT]; // Note all registers are  16-bit
+uint16_t reg[R_COUNT];
 
 //Input Buffering
 struct termios original_tio;
@@ -122,7 +122,6 @@ void read_image_file(FILE* file){
     fread(&origin, sizeof(uint16_t), 1, file);
     origin = swap16(origin);
 
-    //??????Shouldnt instead of max read we should put { max_read / sizeof(uint16_t) }
     uint16_t max_read = MEMORY_MAX - origin;
     //storing the file in exact location in memory as specified by arch
     uint16_t* p = memory + origin;
@@ -147,7 +146,6 @@ int read_image(const char* image_path){
 }
 
 //Memory Access
-
 void mem_write(uint16_t address, uint16_t val){
     memory[address] = val;
 }
@@ -389,7 +387,6 @@ int main(int argc, const char* argv[]){
                     {
                         /*  print to console a string whose 
                             starting address is stored in R7  */
-                            //Note 'memory[]' is an array! 
                         uint16_t* c = memory + reg[R_R0];
                         while(*c){
                             putc( (char)*c , stdout); //needed to cast because c was uint16
