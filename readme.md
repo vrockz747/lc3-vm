@@ -5,9 +5,9 @@ lc3-computer.
 
 ### Resources/Reference Used:
 
-[Write your Own Virtual Machine](https://www.jmeiners.com/lc3-vm/) ( Guide to lc3 )
-[lc3tools](https://highered.mheducation.com/sites/0072467509/student_view0/lc-3_simulator.html) ( Simulator, Assembler etc for lc3 )
-[lc3-ISA](https://www.jmeiners.com/lc3-vm/supplies/lc3-isa.pdf) ( ISA for lc3 )
+[Write your Own Virtual Machine](https://www.jmeiners.com/lc3-vm/) ( Guide to lc3 )  
+[lc3tools](https://highered.mheducation.com/sites/0072467509/student_view0/lc-3_simulator.html) ( Simulator, Assembler etc for lc3 )  
+[lc3-ISA](https://www.jmeiners.com/lc3-vm/supplies/lc3-isa.pdf) ( ISA for lc3 )  
 
 ## Usage:
 
@@ -34,15 +34,15 @@ Run the Programs
 
 ### Address Space : 
 
-> 2^16 (65536 locations)
-> 16-bits wide
+> 2^16 (65536 locations)  
+> 16-bits wide  
 
 ### Register Set: 
 
-> 8 GPR numbered from 000 (0) - 111 (7)
-> Each 16 bits wide
-> N-P-Z, 3 bit conditional register
-> Program-Counter(PC)
+> 8 GPR numbered from 000 (0) - 111 (7)  
+> Each 16 bits wide  
+> N-P-Z, 3 bit conditional register  
+> Program-Counter(PC)  
 
 ### Data Types: 
 
@@ -56,7 +56,7 @@ Run the Programs
 
 ## Data Movement: 
 
- > **LD, LDI, LDR, *LEA*, ST, STR, STI**
+ > **LD, LDI, LDR, *LEA*, ST, STR, STI**  
 
 ### >Addressing Modes
 
@@ -66,11 +66,11 @@ Run the Programs
 | 16-4+3=9bits<br />Used as *Signed* Offset from current PC | Loads the data indirectly by <br />PC + OFF9 = addr of 16bitaddr | Register as Base<br />Use a *register* to generate full 16bit addr |
 | Limited Range to PC+/- 256                                | Can Indirectly generate a full 16 bit address                | Base register contains a 16 bit addr + off6 = req addr       |
 
-### LEA : (load effective address)
+### LEA : (load effective address)  
 
 Computes address like PC-relative (PC + signed offset) and stores the result into a register.
 
-> **To Note**: Indirection or segmentation can be used beyond the limitations of the ISA. These techniques involve using additional registers or complex memory management mechanisms.
+> **To Note**: Indirection or segmentation can be used beyond the limitations of the ISA.   These techniques involve using additional registers or complex memory management mechanisms.
 
 ## Control: 
 
@@ -80,10 +80,10 @@ Computes address like PC-relative (PC + signed offset) and stores the result int
 
 ### Condition codes: N P Z
 
-> Load instructions (**LD, LDI, LDR**, and **LEA**) and 
-> Operate instructions (**ADD, AND**, and **NOT**) 
+> Load instructions (**LD, LDI, LDR**, and **LEA**) and   
+> Operate instructions (**ADD, AND**, and **NOT**)   
 >
-> > **each *load* a result into one of the eight GPR.**
+> > **each *load* a result into one of the eight GPR.**  
 > > All other LC-3 instructions leave the condition codes unchanged
 
 Set based on whether that result, is N, P or Z.
@@ -91,13 +91,13 @@ Set based on whether that result, is N, P or Z.
 
 ## TRAP:
 
-Do not actually introduce any new functionality to the LC-3.
-Make it easier to program by packaging common *sys calls* tasks into one trap code.
+Do not actually introduce any new functionality to the LC-3.  
+Make it easier to program by packaging common *sys calls* tasks into one trap code.  
 These routines executed by the OS.
 
 ## Memory Mapped I/O:
 
-Special Locations are designated in memory to handle I/O
+Special Locations are designated in memory to handle I/O  
 To writing to these mapped registers is to write in their designated memory locations.
 
 ```assembly
@@ -129,20 +129,20 @@ To writing to these mapped registers is to write in their designated memory loca
 
 ## General Abstraction of Components:
 
-The **CPU** has **Ingredients** called Opcodes to act-on/manipulate 
+The **CPU** has **Ingredients** called Opcodes to act-on/manipulate  
 on the input information/data its given
 
 ```assembly
-								   				 Memory
-                +-----+		Fetching Instr   | ...		   |
-   	Input --->  | CPU |  <-------------------| program	   |
-                +-----+		  				 | ...		   |
-                    |----------------------->| Output	   |
+								   				 Memory  
+                +-----+		Fetching Instr   | ...		   |  
+   	Input --->  | CPU |  <-------------------| program	   |  
+                +-----+		  				 | ...		   |  
+                    |----------------------->| Output	   |  
 ```
 
-A **Program** is **recipie** which **instructs** or tells the CPU ***How-To*** act-on the input.
-Its made-up of only the **ingredients** the particular CPU has.
-Its basically the Algorithm we want our input to go through.
+A **Program** is **recipie** which **instructs** or tells the CPU ***How-To*** act-on the input.  
+Its made-up of only the **ingredients** the particular CPU has.  
+Its basically the Algorithm we want our input to go through.  
 
 ```assembly
                 +------------------------+
@@ -157,7 +157,7 @@ Its basically the Algorithm we want our input to go through.
 						(recipe).asm
 ```
 
-**Memory** is where the Program is stored, and is accessed in n-bits chunks of array where n is defined by the max possible addressable address for the CPU.
+**Memory** is where the Program is stored, and is accessed in n-bits chunks of array where n    is defined by the max possible addressable address for the CPU.
 
 ```assembly
  Address  <---------16-bits-wide---------->
@@ -171,10 +171,5 @@ Its basically the Algorithm we want our input to go through.
 ```
 
 ----
-
-
-
-
-
 
 
