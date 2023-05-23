@@ -1,9 +1,9 @@
 ## LC3-Virtual Machine
 
-A Emulator for the LC3 Architecture, which can run any program designed for the 
+An Emulator for the LC3 Architecture, which can run any program designed for the 
 lc3-computer.
 
-### Resources/Reference Used:
+### Resources/Reference:
 
 [Write your Own Virtual Machine](https://www.jmeiners.com/lc3-vm/) ( Guide to lc3 )  
 [lc3tools](https://highered.mheducation.com/sites/0072467509/student_view0/lc-3_simulator.html) ( Simulator, Assembler etc for lc3 )  
@@ -13,20 +13,24 @@ lc3-computer.
 
 **(For UNIX-based OS)**
 
-**Compile the VM:**
+**Build the VM:**
 
 ```
-$ gcc lc3.c -o lc3-vm
+$ make
 ```
 
-**Define the target .obj file**
-	tests/games for example:
+**Define the target .obj file**,
+     "tests/games" for example:
 
 ```
-$ lc3-vm tests/games/2048.obj
+$ lc3vm tests/games/2048.obj
 ```
 
-Run the Programs
+**Delete unecessary .o files:**
+```
+$ make clean
+```
+**Run the programs**
 
 -----
 
@@ -68,7 +72,7 @@ ADD, AND, NOT
 LD, LDI, LDR, LEA, ST, STR, STI
 ```
 
-### >Addressing Modes
+### Addressing Modes:
 
 | PC-Relative                                               | Base+Offset9                                                 | R_Base+Offset6                                               |
 | --------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -146,8 +150,8 @@ on the input information/data its given
 
 ```assembly
 							Memory  
-                    +-----+	Fetching Instr   | ...		   |  
-   	Input --->  | CPU |  <-------------------| program	   |  
+                    +-----+    Fetching Instr    | ...		   |  
+   	Input --->  | CPU |<---------------------| program	   |  
                     +-----+		  	 | ...		   |  
                     |--------------------------->| Output	   |  
 ```
