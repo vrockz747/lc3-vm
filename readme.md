@@ -34,29 +34,39 @@ Run the Programs
 
 ### Address Space : 
 
-> 2^16 (65536 locations)  
-> 16-bits wide  
+```
+2^16 (65536 locations)  
+16-bits wide  
+```
 
 ### Register Set: 
 
-> 8 GPR numbered from 000 (0) - 111 (7)  
-> Each 16 bits wide  
-> N-P-Z, 3 bit conditional register  
-> Program-Counter(PC)  
+```
+8 GPR numbered from 000 (0) - 111 (7)  
+Each 16 bits wide  
+N-P-Z, 3 bit conditional register  
+Program-Counter(PC)  
+```
 
 ### Data Types: 
 
-> 16 bits 2's complement integer
+```
+16 bits 2's complement integer
+```
 
 # Opcodes
 
 ## Operate Instructions: 
 
-> **ADD, AND, NOT**
+```
+ADD, AND, NOT
+```
 
 ## Data Movement: 
 
- > **LD, LDI, LDR, *LEA*, ST, STR, STI**  
+```
+LD, LDI, LDR, LEA, ST, STR, STI
+```
 
 ### >Addressing Modes
 
