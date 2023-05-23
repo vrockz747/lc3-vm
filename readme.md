@@ -121,9 +121,9 @@ To writing to these mapped registers is to write in their designated memory loca
             +--------------------------------------+	 x0100
             |        Interrupt Vector Table        |
             +--------------------------------------+	 x01FF
-            |          							   |	 x0200
-            |		  Operating System and	       |
-            |		    Supervisor Stack           |
+            |          				   |	 x0200
+            |		  Operating System and	   |
+            |		    Supervisor Stack       |
             |                                      |	 x2FFF
             +--------------------------------------+	 x3000
             |                                      |
@@ -145,11 +145,11 @@ The **CPU** has **Ingredients** called Opcodes to act-on/manipulate
 on the input information/data its given
 
 ```assembly
-								   				 Memory  
-                +-----+		Fetching Instr   | ...		   |  
+							Memory  
+                    +-----+	Fetching Instr   | ...		   |  
    	Input --->  | CPU |  <-------------------| program	   |  
-                +-----+		  				 | ...		   |  
-                    |----------------------->| Output	   |  
+                    +-----+		  	 | ...		   |  
+                    |--------------------------->| Output	   |  
 ```
 
 A **Program** is **recipie** which **instructs** or tells the CPU ***How-To*** act-on the input.  
@@ -158,26 +158,26 @@ Its basically the Algorithm we want our input to go through.
 
 ```assembly
                 +------------------------+
-                |   ...      			 |
+                |   ...      		 |
                 |   AND R4, R5, R6       |		Assembler
-                |   NOT R7, R8 			 |-->(to machine code)-->Instr
-                |	...					 |
+                |   NOT R7, R8 	         |-->(to machine code)-->Instr
+                |	...		 |
                 |   LDR R9, LABEL        |
                 |   STR R10, R11, #10 	 |
-                |	...					 |
+                |	...		 |
                 +------------------------+
-						(recipe).asm
+			(recipe).asm
 ```
 
 **Memory** is where the Program is stored, and is accessed in n-bits chunks of array where n    is defined by the max possible addressable address for the CPU.
 
 ```assembly
- Address  <---------16-bits-wide---------->
+ Address <---------16-bits-wide---------->
 ...
 | x1234 | 0|1|0|1|0|1|0|0|1|1|0|0|1|1|1|0 |
-...					   				      |
+...					  |
 | x5678 | 1|1|1|0|0|0|1|1|0|0|1|1|0|0|1|0 | <-----Program-Counter(PC)
-...                        				  |
+...                        		  |
 | x9ABC | 1|0|1|0|1|0|1|0|1|0|1|0|1|0|1|0 |
 ...
 ```
