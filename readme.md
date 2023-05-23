@@ -84,7 +84,9 @@ Computes address like PC-relative (PC + signed offset) and stores the result int
 
 ## Control: 
 
- > **BR, JSR/JSRR, JMP, RTI, TRAP**
+```
+BR, JSR/JSRR, JMP, RTI, TRAP
+```
 
 ### **Used to Alter the seq of instr (PC)**
 
